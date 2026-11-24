@@ -6,9 +6,13 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:create": "node scripts/create-posts-table.mjs",
+    "db:seed": "node scripts/seed-posts.mjs",
+    "db:read": "node scripts/read-posts.mjs"
   },
   "dependencies": {
+    "@libsql/client": "^0.18.0",
     "next": "16.4.6",
     "react": "19.3.0",
     "react-dom": "19.3.0"
