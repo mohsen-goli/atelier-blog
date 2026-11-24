@@ -1,36 +1,58 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ATELIER Blog
+
+A Next.js blog project using Turso (libSQL) for its database.
+
+## Requirements
+
+- Node.js 20.12 or newer
+- npm
 
 ## Getting Started
 
-First, run the development server:
+Install dependencies and start the development server:
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Turso database setup
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Create a database in [Turso](https://turso.tech/).
+2. Copy its database URL and create an authentication token.
+3. Add both values to the root `.env.local` file:
 
-## Learn More
+```dotenv
+TURSO_DATABASE_URL=libsql://your-database-name-your-org.aws-region.turso.io
+TURSO_AUTH_TOKEN=your-turso-auth-token
+```
 
-To learn more about Next.js, take a look at the following resources:
+Keep `.env.local` private. It is ignored by Git and must never be committed.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Run the database scripts from the project root:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npm run db:create
+npm run db:seed
+npm run db:read
+```
 
-## Deploy on Vercel
+- `db:create` creates the `posts` table if it does not already exist.
+- `db:seed` inserts the six sample posts. Running it again updates matching slugs instead of creating duplicates.
+- `db:read` prints up to three posts from the database.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The scripts load `.env.local` automatically for local development. In CI or hosted environments, provide `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN` as environment variables.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Production build
+
+```bash
+npm run build
+npm run start
+```
+
+## Useful links
+
+- [Next.js documentation](https://nextjs.org/docs)
+- [Turso documentation](https://docs.turso.tech/)
