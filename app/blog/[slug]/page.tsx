@@ -1,4 +1,4 @@
-import { posts } from "@/data/posts";
+import { getPostBySlug, getRelatedPosts } from "@/lib/posts";
 import LikeButton from "@/components/LikeButton";
 import type { Metadata } from "next";
 import Image from "next/image";
@@ -15,11 +15,12 @@ export async function generateMetadata({
   params,
 }: BlogPostProps): Promise<Metadata> {
   const { slug } = await params;
-  const post = posts.find((item) => item.slug === slug);
+  const post = await getPostBySlug(slug);
 
   if (!post) {
     return {
       title: "Article Not Found | ATELIER",
+      description: "The article you are looking for could not be found.",
     };
   }
 
@@ -31,22 +32,13 @@ export async function generateMetadata({
 
 export default async function BlogPostPage({ params }: BlogPostProps) {
   const { slug } = await params;
-  const post = posts.find((item) => item.slug === slug);
+  const post = await getPostBySlug(slug);
 
   if (!post) {
     notFound();
   }
 
-  const relatedPosts = posts
-    .filter(
-      (item) => item.slug !== post.slug && item.category === post.category,
-    )
-    .concat(posts.filter((item) => item.slug !== post.slug))
-    .filter(
-      (item, index, array) =>
-        array.findIndex((other) => other.slug === item.slug) === index,
-    )
-    .slice(0, 3);
+  const relatedPosts = await getRelatedPosts(post, 3);
 
   const formattedDate = new Date(post.date).toLocaleDateString("en-US", {
     year: "numeric",
