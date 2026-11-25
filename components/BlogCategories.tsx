@@ -1,13 +1,14 @@
+
 "use client";
 
 type BlogCategoriesProps = {
+  categories: string[];
   selectedCategory: string;
   onCategoryChange: (category: string) => void;
 };
 
-const categories = ["All", "React", "JavaScript", "Next.js"];
-
 export default function BlogCategories({
+  categories,
   selectedCategory,
   onCategoryChange,
 }: BlogCategoriesProps) {
