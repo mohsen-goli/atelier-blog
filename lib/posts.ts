@@ -1,3 +1,4 @@
+import "server-only";
 import { turso } from "@/lib/turso";
 
 export type Post = {
