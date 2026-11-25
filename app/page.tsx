@@ -1,8 +1,20 @@
-import Image from "next/image";
+﻿import Image from "next/image";
 import Link from "next/link";
-import { posts } from "@/data/posts";
+import { getPublishedPosts } from "@/lib/posts";
 
-export default function HomePage() {
+export const dynamic = "force-dynamic";
+
+export default async function HomePage() {
+  const posts = await getPublishedPosts();
+
+  if (posts.length === 0) {
+    return (
+      <main className="mx-auto max-w-7xl px-6 py-24 text-center">
+        <h1 className="text-3xl font-light">No articles published yet.</h1>
+      </main>
+    );
+  }
+
   const featuredPost = posts[0];
   const latestPosts = posts.slice(1, 4);
 

@@ -3,10 +3,14 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { posts } from "@/data/posts";
+import type { Post } from "@/lib/posts";
 import BlogCategories from "./BlogCategories";
 
-export default function BlogExplorer() {
+type BlogExplorerProps = {
+  posts: Post[];
+};
+
+export default function BlogExplorer({ posts }: BlogExplorerProps) {
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
@@ -14,7 +18,11 @@ export default function BlogExplorer() {
 
   const pageSize = 2;
 
-  // 1. Filter articles
+  const categories = [
+    "All",
+    ...Array.from(new Set(posts.map((post) => post.category))).sort(),
+  ];
+
   const filteredPosts = posts.filter((post) => {
     const matchesSearch =
       post.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -26,7 +34,6 @@ export default function BlogExplorer() {
     return matchesSearch && matchesCategory;
   });
 
-  // 2. Sort articles
   const sortedPosts = [...filteredPosts].sort((a, b) => {
     if (sortOrder === "newest") {
       return new Date(b.date).getTime() - new Date(a.date).getTime();
@@ -43,9 +50,7 @@ export default function BlogExplorer() {
     return 0;
   });
 
-  // 3. Pagination
   const totalPages = Math.ceil(sortedPosts.length / pageSize);
-
   const visiblePosts = sortedPosts.slice(
     (currentPage - 1) * pageSize,
     currentPage * pageSize,
@@ -53,137 +58,118 @@ export default function BlogExplorer() {
 
   return (
     <main className="mx-auto w-full max-w-6xl px-6 py-12">
-      {/* Page Header */}
       <div className="mb-10">
-        <h1 className="text-4xl font-bold text-gray-900">Our Blog</h1>
-
-        <p className="mt-3 text-gray-500">
-          Explore our latest articles and tutorials.
+        <h1 className="mb-3 text-4xl font-light">Journal</h1>
+        <p className="text-gray-500">
+          Thoughts, stories and inspiration from our world.
         </p>
       </div>
 
-      {/* Search */}
-      <input
-        type="text"
-        placeholder="Search articles..."
-        value={search}
-        onChange={(event) => {
-          setSearch(event.target.value);
-          setCurrentPage(1);
-        }}
-        className="mb-8 w-full rounded-xl border border-gray-300 px-5 py-4 outline-none focus:border-blue-500"
-      />
-
-      {/* Sorting */}
-      <div className="mb-8 flex items-center gap-3">
-        <label htmlFor="sort" className="font-medium text-gray-700">
-          Sort by:
-        </label>
-
-        <select
-          id="sort"
-          value={sortOrder}
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row">
+        <input
+          type="text"
+          value={search}
           onChange={(event) => {
-            setSortOrder(event.target.value);
+            setSearch(event.target.value);
             setCurrentPage(1);
           }}
-          className="rounded-lg border border-gray-300 px-4 py-2"
-        >
-          <option value="newest">Newest first</option>
-          <option value="oldest">Oldest first</option>
-          <option value="az">Title A–Z</option>
-        </select>
+          placeholder="Search articles..."
+          className="w-full rounded-lg border border-gray-200 px-4 py-3 outline-none focus:border-gray-500"
+        />
+
+        {/* Custom editorial sort menu */}
+        <div className="relative min-w-[190px]">
+          <select
+            value={sortOrder}
+            onChange={(event) => {
+              setSortOrder(event.target.value);
+              setCurrentPage(1);
+            }}
+            className="w-full appearance-none rounded-full border border-[#e8dadd] bg-[#fbf7f6] px-5 py-3 pr-11 text-sm font-medium text-[#762d40] shadow-sm outline-none transition duration-300 hover:border-[#b77b89] focus:border-[#762d40] focus:ring-2 focus:ring-[#762d40]/10"
+          >
+            <option value="newest">Newest first</option>
+            <option value="oldest">Oldest first</option>
+            <option value="az">A to Z</option>
+          </select>
+
+          <svg
+            className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#762d40]"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.7"
+          >
+            <path
+              d="m7 10 5 5 5-5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </div>
       </div>
 
-      {/* Categories */}
       <BlogCategories
+        categories={categories}
         selectedCategory={selectedCategory}
         onCategoryChange={(category) => {
           setSelectedCategory(category);
           setCurrentPage(1);
-
-          if (category === "All") {
-            setSearch("");
-          }
+          if (category === "All") setSearch("");
         }}
       />
 
-      {/* Articles Grid */}
-      <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-8 md:grid-cols-2">
         {visiblePosts.map((post) => (
-          <article
-            key={post.slug}
-            className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
-          >
-            <Image
-              src={post.image}
-              alt={post.title}
-              width={800}
-              height={450}
-              className="h-52 w-full object-cover"
-            />
+          <article key={post.slug} className="group">
+            <Link href={`/blog/${post.slug}`}>
+              <div className="relative mb-4 aspect-[16/10] overflow-hidden rounded-xl bg-gray-100">
+                <Image
+                  src={post.image}
+                  alt={post.title}
+                  fill
+                  className="object-cover transition duration-500 group-hover:scale-105"
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                />
+              </div>
 
-            <div className="p-5">
-              {/* Publication Date */}
-              <p className="mb-3 text-sm text-gray-500">
-                {new Date(post.date).toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </p>
+              <p className="mb-2 text-sm text-gray-500">{post.category}</p>
 
-              {/* Category */}
-              <span className="text-sm font-medium text-blue-600">
-                {post.category}
-              </span>
-
-              {/* Title */}
-              <h2 className="mt-2 text-xl font-bold text-gray-900">
+              <h2 className="mb-2 text-2xl font-light transition group-hover:text-gray-500">
                 {post.title}
               </h2>
 
-              {/* Description */}
-              <p className="mt-3 text-sm leading-7 text-gray-600">
+              <p className="text-sm leading-7 text-gray-500">
                 {post.description}
               </p>
-
-              {/* Article Link */}
-              <Link
-                href={`/blog/${post.slug}`}
-                className="mt-5 inline-block font-semibold text-blue-600 hover:text-blue-800"
-              >
-                Read Article →
-              </Link>
-            </div>
+            </Link>
           </article>
         ))}
       </div>
 
-      {/* No Results */}
-      {filteredPosts.length === 0 && (
-        <p className="mt-8 text-center text-gray-500">No articles found.</p>
+      {visiblePosts.length === 0 && (
+        <p className="py-16 text-center text-gray-500">No articles found.</p>
       )}
 
-      {/* Pagination */}
       {totalPages > 1 && (
-        <div className="mt-12 flex items-center justify-center gap-6">
+        <div className="mt-12 flex items-center justify-center gap-4">
           <button
+            onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
             disabled={currentPage === 1}
-            onClick={() => setCurrentPage(currentPage - 1)}
-            className="rounded-lg bg-gray-200 px-5 py-2 disabled:opacity-40"
+            className="rounded-lg border px-4 py-2 disabled:opacity-40"
           >
             Previous
           </button>
 
-          <span className="font-semibold text-gray-700">
+          <span className="text-sm text-gray-500">
             Page {currentPage} of {totalPages}
           </span>
 
           <button
+            onClick={() =>
+              setCurrentPage((page) => Math.min(totalPages, page + 1))
+            }
             disabled={currentPage === totalPages}
-            onClick={() => setCurrentPage(currentPage + 1)}
-            className="rounded-lg bg-blue-600 px-5 py-2 text-white disabled:opacity-40"
+            className="rounded-lg border px-4 py-2 disabled:opacity-40"
           >
             Next
           </button>
